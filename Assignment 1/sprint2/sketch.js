@@ -1,31 +1,33 @@
-/* October 2021 - Shaelyn Strong
-Uses p5.soundFile to load a magical sound effect and a mouseDragged function to create a fading drawing mode. The Arduino file that's running is "arduino_sprints"
+/* October 2021- Shaelyn Strong
 
-I used this code for loading a sound: https://p5js.org/reference/#/p5.SoundFile
+Uses the threesoundthreecircles template code provided but is modified using some example code provided to follow mouse and fade away into a colour, this was changed to work with the potentiometer.
 
-This was used to create the fading drawing mode: https://openprocessing.org/sketch/878231
+The Arduino file that's running is "arduino_sprints"
+
+I used this code for my visual: https://openprocessing.org/sketch/877931
 */
 
 let mySound;
+let osc;
 let playing = false;
 let serial;
 let latestData = "waiting for data";  // you'll use this to write incoming data to the canvas
 let splitter;
 let diameter0 = 0, diameter1 = 0, diameter2 = 0;
 
+let osc1, osc2, osc3, fft;
+
 function preload() {
   soundFormats('mp3', 'ogg');
-  mySound = loadSound('assets/magic.mp3');
+  mySound = createAudio('assets/drum.mp3');
 }
 
+
 function setup() {
+
     
-let cnv = createCanvas(1000, 1000);
-  cnv.mousePressed(canvasPressed);
-  background(220);
-  text('tap here to play', 10, 20);
-    
-}
+  
+  createCanvas(windowWidth, windowHeight);
 
 ///////////////////////////////////////////////////////////////////
     //Begin serialport library methods, this is using callbacks
@@ -78,14 +80,24 @@ let cnv = createCanvas(1000, 1000);
   // OR
   //serial.onRawData(gotRawData);
 
+ 
+}
 ////////////////////////////////////////////////////////////////////////////
 // End serialport callbacks
 ///////////////////////////////////////////////////////////////////////////
-function canvasPressed() {
-  // playing a sound file on a user gesture
-  // is equivalent to `userStartAudio()`
-  mySound.play();
-}
+
+
+osc1 = new p5.TriOsc(); // set frequency and type
+osc1.amp(.5);
+osc2 = new p5.TriOsc(); // set frequency and type
+osc2.amp(.5);  
+osc3 = new p5.TriOsc(); // set frequency and type
+osc3.amp(.5);    
+
+fft = new p5.FFT();
+osc1.start();
+osc2.start(); 
+osc3.start();
 
 // We are connected and ready to go
 function serverConnected() {
@@ -107,10 +119,11 @@ function gotOpen() {
   console.log("Serial Port is Open");
 }
 
-// Uh oh, here is an error, let's log it
+// Ut oh, here is an error, let's log it
 function gotError(theerror) {
   console.log(theerror);
 }
+
 
 
 // There is data available to work with from the serial port
@@ -126,6 +139,9 @@ function gotData() {
   diameter0 = splitter[0];                 //put the first sensor's data into a variable
   diameter1 = splitter[1];
   diameter2 = splitter[2]; 
+
+
+
 }
 
 // We got raw data from the serial port
@@ -133,14 +149,34 @@ function gotRawData(thedata) {
   println("gotRawData" + thedata);
 }
 
-function draw(){
-background(255, 50, 255, 10);
-}
+// Methods available
+// serial.read() returns a single byte of data (first in the buffer)
+// serial.readChar() returns a single char 'A', 'a'
+// serial.readBytes() returns all of the data available as an array of bytes
+// serial.readBytesUntil('\n') returns all of the data available until a '\n' (line break) is encountered
+// serial.readString() retunrs all of the data available as a string
+// serial.readStringUntil('\n') returns all of the data available as a string until a specific string is encountered
+// serial.readLine() calls readStringUntil with "\r\n" typical linebreak carriage return combination
+// serial.last() returns the last byte of data from the buffer
+// serial.lastChar() returns the last byte of data from the buffer as a char
+// serial.clear() clears the underlying serial buffer
+// serial.available() returns the number of bytes available in the buffer
+// serial.write(somevar) writes out the value of somevar to the serial device
 
-function mouseDragged() {
-  rect(mouseX, mouseY, 60, 60);
+
+function draw() {
+    
+    
+  background(44,72,112, 10);
+    
+  ellipse(diameter1, diameter1, 50, 50);
   return false;
-}
+} 
+
+
+  
+
+
   
 
  

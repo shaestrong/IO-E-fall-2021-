@@ -1,28 +1,35 @@
-/* October 2021 - Shaelyn Strong
-Uses monoSynth to mimic a piano sound and visual. The Arduino file that's running is "arduino_sprints"
+/* October 2021- Shaelyn Strong
 
-I used this code for the monoSynth: https://p5js.org/reference/#/p5.MonoSynth
+Uses the threesoundthreecircles template code provided but is modified using some example code provided to follow mouse, this was changed to work with the potentiometer.
 
-This was used as reference to load the image: https://p5js.org/reference/#/p5/image
+The Arduino file that's running is "arduino_sprints"
+
+I used this code for my visual: https://openprocessing.org/sketch/869918
 */
 
-let monoSynth;
-let img;
+let mySound;
+let spark;
+let osc;
 let playing = false;
 let serial;
 let latestData = "waiting for data";  // you'll use this to write incoming data to the canvas
 let splitter;
 let diameter0 = 0, diameter1 = 0, diameter2 = 0;
 
+let osc1, osc2, osc3, fft;
+
 function preload() {
-  img = loadImage('assets/piano.jpeg'); //Loads the piano image
+  soundFormats('mp3', 'ogg');
+  mySound = createAudio('assets/drum.mp3');
 }
 
+
 function setup() {
-  let cnv = createCanvas(1000, 1000);
-  image(img, 100, 100);
-  cnv.mousePressed(playSynth);
-  monoSynth = new p5.MonoSynth();
+
+spark = new Particle(random(width), random(height));
+background('black');   
+  
+createCanvas(windowWidth, windowHeight);
 
 ///////////////////////////////////////////////////////////////////
     //Begin serialport library methods, this is using callbacks
@@ -81,6 +88,19 @@ function setup() {
 // End serialport callbacks
 ///////////////////////////////////////////////////////////////////////////
 
+
+osc1 = new p5.TriOsc(); // set frequency and type
+osc1.amp(.5);
+osc2 = new p5.TriOsc(); // set frequency and type
+osc2.amp(.5);  
+osc3 = new p5.TriOsc(); // set frequency and type
+osc3.amp(.5);    
+
+fft = new p5.FFT();
+osc1.start();
+osc2.start(); 
+osc3.start();
+
 // We are connected and ready to go
 function serverConnected() {
   console.log("Connected to Server");
@@ -101,10 +121,11 @@ function gotOpen() {
   console.log("Serial Port is Open");
 }
 
-// Uh oh, here is an error, let's log it
+// Ut oh, here is an error, let's log it
 function gotError(theerror) {
   console.log(theerror);
 }
+
 
 
 // There is data available to work with from the serial port
@@ -120,6 +141,9 @@ function gotData() {
   diameter0 = splitter[0];                 //put the first sensor's data into a variable
   diameter1 = splitter[1];
   diameter2 = splitter[2]; 
+
+
+
 }
 
 // We got raw data from the serial port
@@ -127,19 +151,75 @@ function gotRawData(thedata) {
   println("gotRawData" + thedata);
 }
 
-function playSynth() {
-  userStartAudio();
+// Methods available
+// serial.read() returns a single byte of data (first in the buffer)
+// serial.readChar() returns a single char 'A', 'a'
+// serial.readBytes() returns all of the data available as an array of bytes
+// serial.readBytesUntil('\n') returns all of the data available until a '\n' (line break) is encountered
+// serial.readString() retunrs all of the data available as a string
+// serial.readStringUntil('\n') returns all of the data available as a string until a specific string is encountered
+// serial.readLine() calls readStringUntil with "\r\n" typical linebreak carriage return combination
+// serial.last() returns the last byte of data from the buffer
+// serial.lastChar() returns the last byte of data from the buffer as a char
+// serial.clear() clears the underlying serial buffer
+// serial.available() returns the number of bytes available in the buffer
+// serial.write(somevar) writes out the value of somevar to the serial device
 
-  let note = random(['Fb4', 'G4']);
-  // note velocity (volume, from 0 to 1)
-  let velocity = random();
-  // time from now (in seconds)
-  let time = 0;
-  // note duration (in seconds)
-  let dur = 1/6;
 
-  monoSynth.play(note, velocity, time, dur);
+function draw() {
+    
+spark.update();
+spark.show();
+    
+let dx = diameter1 - spark.x;
+	let dy = diameter1 - spark.y;
+	let k = 100; // spring constant
+	spark.applyForce(dx / k, dy / k);
+    
+    
+} 
+
+function Particle(x, y) {
+	// The particle position has two components
+  this.x = x;
+  this.y = y;
+	// The particle velocity (position change or "delta")
+	this.dx = 0;
+	this.dy = 0;
+	// Acceleration is the change in velocity
+	this.ax = 0;
+	this.ay = 0;
+
+	// Accelerate the particle by incrementing its acceleration
+  this.applyForce = function(fx, fy){
+		this.ax += fx;
+		this.ay += fy;
+  }
+
+	// Update the particle position and accelearation
+  this.update = function(){
+		let b = 0.99; // viscosity
+		this.x += this.dx;
+		this.y += this.dy;
+		this.dx += this.ax;
+		this.dy += this.ay;
+		
+		this.dx *= b;
+		this.dy *= b;
+		this.ax = 0;
+		this.ay = 0;
+	}
+
+  this.show = function(){
+		fill('red');
+		noStroke();
+    circle(this.x, this.y, 5);
+  }
 }
+
+
+
+  
 
 
   
