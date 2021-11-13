@@ -1,0 +1,66 @@
+<html>
+<head>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.5/p5.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.5/addons/p5.dom.js"></script>
+	<script src="../lib/p5.speech.js"></script>
+	<script>
+
+	var words = ["UX design", "visual design", "information architecture", "software developement"]; // some words
+	var iptr = 0; // a counter for the words
+
+	var myVoice = new p5.Speech(); // new P5.Speech object
+    
+    let img;
+        
+    function preload() {
+    img = loadImage('img/logo.jpeg');
+    }
+
+	function setup()
+	{
+		// graphics stuff:
+		createCanvas(1500, 700);
+		background(237, 150, 185);
+		fill(255, 255, 255, 100);
+	
+		textSize(30);
+		textAlign(CENTER);
+        text("Bachelor of Interaction Design", width/2, height/2 );
+
+  		// say hello:
+		myVoice.speak('testing one two three!!!');
+
+	}
+
+	function draw()
+	{
+		// why draw when you can click?
+	}
+
+	function doList()
+	{
+		myVoice.listVoices(); // debug printer for voice options
+	}
+
+	function keyPressed()
+	{
+		background(255, 0, 0); // clear screen
+	}
+
+	function mousePressed()
+	{
+		// if in bounds:
+		if(mouseX<width && mouseY<height) {
+			image(img, mouseX, mouseY, 50, 50); // circle
+			// randomize voice and speak word:
+			myVoice.setVoice(Math.floor(random(myVoice.voices.length)));
+			myVoice.speak(words[iptr]);
+			iptr = (iptr+1) % words.length; // increment
+		}
+	}
+
+</script>
+</head>
+<body>
+</body>
+</html>
